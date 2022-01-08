@@ -1,41 +1,39 @@
-import express, { Express } from "express";
-import { Server } from "http";
-import { LoggerService } from "./logger/logger.service";
-import { UsersController } from "./users/users.controller";
-import { ExceptionFilter } from "./errors/exception.filter";
+import express, { Express } from 'express';
+import { Server } from 'http';
+import { UsersController } from './users/users.controller';
+import { ExceptionFilter } from './errors/exception.filter';
+import { inject, injectable } from 'inversify';
+import { TYPES } from './types';
+import { ILogger } from './logger/logget.interface';
+import 'reflect-metadata';
 
+@injectable()
 export class App {
-  app: Express;
-  server: Server;
-  port: number;
-  logger: LoggerService;
-  usersController: UsersController;
-  exceptionFilter: ExceptionFilter;
+	app: Express;
+	server: Server;
+	port: number;
 
-  constructor(
-    logger: LoggerService,
-    usersController: UsersController,
-    exceptionFilter: ExceptionFilter
-  ) {
-    this.app = express();
-    this.port = 8000;
-    this.logger = logger;
-    this.usersController = usersController;
-    this.exceptionFilter = exceptionFilter;
-  }
+	constructor(
+		@inject(TYPES.ILogger) private logger: ILogger,
+		@inject(TYPES.IUsers) private usersController: UsersController,
+		@inject(TYPES.ExceptionFilter) private exceptionFilter: ExceptionFilter,
+	) {
+		this.app = express();
+		this.port = 8000;
+	}
 
-  useRoutes() {
-    this.app.use("/users", this.usersController.router);
-  }
+	useRoutes(): void {
+		this.app.use('/users', this.usersController.router);
+	}
 
-  useExceptionFilters() {
-    this.app.use(this.exceptionFilter.catch.bind(this.exceptionFilter));
-  }
+	useExceptionFilters(): void {
+		this.app.use(this.exceptionFilter.catch.bind(this.exceptionFilter));
+	}
 
-  async init() {
-    this.useRoutes();
-    this.useExceptionFilters();
-    this.server = this.app.listen(this.port);
-    this.logger.log(`Сервер запущен на http://localhost:${this.port}`);
-  }
+	async init(): Promise<void> {
+		this.useRoutes();
+		this.useExceptionFilters();
+		this.server = this.app.listen(this.port);
+		this.logger.log(`Сервер запущен на http://localhost:${this.port}`);
+	}
 }
