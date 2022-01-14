@@ -17,6 +17,7 @@
   "author": "Arthur Donkovtsev",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^3.8.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.1",
     "class-transformer": "^0.5.1",
@@ -37,6 +38,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "nodemon": "^2.0.15",
     "prettier": "^2.5.1",
+    "prisma": "^3.8.0",
     "ts-node": "^10.4.0"
   }
 }
