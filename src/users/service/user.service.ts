@@ -6,8 +6,7 @@ import { TYPES } from '../../types';
 import { IConfigService } from '../../config/config.service.interface';
 import { UsersRepository } from '../repository/users.repository';
 import { UserLoginDto } from '../dto/user-login.dto';
-// @ts-ignore
-import { UserModel } from '@prisma/client';
+import { UserModalType } from '../types';
 
 @injectable()
 export class UserService implements IUserService {
@@ -15,7 +14,8 @@ export class UserService implements IUserService {
 		@inject(TYPES.IConfigService) private configService: IConfigService,
 		@inject(TYPES.UsersRepository) private userRepository: UsersRepository,
 	) {}
-	async createUser({ email, name, password }: UserRegisterDto): Promise<User | null> {
+
+	async createUser({ email, name, password }: UserRegisterDto): Promise<UserModalType | null> {
 		const newUser = new User(email, name);
 		await newUser.setPassword(password, Number(this.configService.get('SALT')));
 
@@ -24,12 +24,19 @@ export class UserService implements IUserService {
 			return null;
 		}
 
-		return await this.userRepository.create(newUser);
+		return this.userRepository.create(newUser);
 	}
 
-	async validateUser({ email, password }: UserLoginDto): Promise<boolean> {
-		const existedUser: UserModel = await this.userRepository.find(email);
-		const user = new User(email);
-		return (await user.compare(password, existedUser.password)) && user.email === existedUser.email;
+	async validateUser(dto: UserLoginDto): Promise<boolean> {
+		const existedUser = await this.userRepository.find(dto.email);
+
+		if (!existedUser) {
+			return false;
+		}
+
+		const { name, password, email } = existedUser;
+
+		const user = new User(name, email, password);
+		return await user.comparePassword(dto.password);
 	}
 }

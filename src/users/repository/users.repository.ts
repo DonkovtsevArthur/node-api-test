@@ -1,20 +1,20 @@
 import { IUsersRepository } from './users.repository.interface';
-// @ts-ignore
-import { UserModel } from '@prisma/client';
+
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../../types';
 import { PrismaService } from '../../database/prisma.service';
 import { User } from '../entity/user.entity';
+import { UserModalType } from '../types';
 
 @injectable()
 export class UsersRepository implements IUsersRepository {
 	constructor(@inject(TYPES.PrismaService) private prismaService: PrismaService) {}
 
-	async create({ password, email, name }: User): Promise<UserModel> {
-		return await this.prismaService.client.userModal.create({ data: { password, email, name } });
-	}
+	create = async ({ name, password, email }: User): Promise<UserModalType> => {
+		return await this.prismaService.client.userModal.create({ data: { name, password, email } });
+	};
 
-	async find(email: string): Promise<UserModel | null> {
+	find = async (email: string): Promise<UserModalType | null> => {
 		return await this.prismaService.client.userModal.findFirst({ where: { email } });
-	}
+	};
 }
