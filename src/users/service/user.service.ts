@@ -6,7 +6,7 @@ import { TYPES } from '../../types';
 import { IConfigService } from '../../config/config.service.interface';
 import { UsersRepository } from '../repository/users.repository';
 import { UserLoginDto } from '../dto/user-login.dto';
-import { UserModalType } from '../types';
+import { UserModelType } from '../types';
 
 @injectable()
 export class UserService implements IUserService {
@@ -15,7 +15,7 @@ export class UserService implements IUserService {
 		@inject(TYPES.UsersRepository) private userRepository: UsersRepository,
 	) {}
 
-	async createUser({ email, name, password }: UserRegisterDto): Promise<UserModalType | null> {
+	async createUser({ email, name, password }: UserRegisterDto): Promise<UserModelType | null> {
 		const newUser = new User(email, name);
 		await newUser.setPassword(password, Number(this.configService.get('SALT')));
 
@@ -38,5 +38,9 @@ export class UserService implements IUserService {
 
 		const user = new User(name, email, password);
 		return await user.comparePassword(dto.password);
+	}
+
+	async getUserInfo(email: string): Promise<UserModelType | null> {
+		return this.userRepository.find(email);
 	}
 }

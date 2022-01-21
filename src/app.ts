@@ -8,6 +8,8 @@ import { ILogger } from './logger/logget.interface';
 import { json } from 'body-parser';
 import 'reflect-metadata';
 import { PrismaService } from './database/prisma.service';
+import { AuthMiddleware } from './common/auth.middleware';
+import { IConfigService } from './config/config.service.interface';
 
 @injectable()
 export class App {
@@ -20,6 +22,7 @@ export class App {
 		@inject(TYPES.UsersController) private usersController: UsersController,
 		@inject(TYPES.ExceptionFilter) private exceptionFilter: ExceptionFilter,
 		@inject(TYPES.PrismaService) private prismaService: PrismaService,
+		@inject(TYPES.IConfigService) private configService: IConfigService,
 	) {
 		this.app = express();
 		this.port = 8000;
@@ -27,6 +30,8 @@ export class App {
 
 	useMiddleware(): void {
 		this.app.use(json());
+		const authMiddleware = new AuthMiddleware(this.configService.get('SECRET'));
+		this.app.use(authMiddleware.execute.bind(authMiddleware));
 	}
 
 	useRoutes(): void {
@@ -44,5 +49,9 @@ export class App {
 		await this.prismaService.connect();
 		this.server = this.app.listen(this.port);
 		this.logger.log(`Сервер запущен на http://localhost:${this.port}`);
+	}
+
+	public close() {
+		this.server.close();
 	}
 }
